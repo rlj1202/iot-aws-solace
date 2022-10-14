@@ -1,0 +1,28 @@
+{
+  "name": "assignment2_",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon --exec sudo npx babel-node src/main.js"
+  },
+  "author": "Jisu Sim",
+  "license": "ISC",
+  "dependencies": {
+    "core-js": "^3.25.5",
+    "dotenv": "^16.0.3",
+    "immer": "^9.0.15",
+    "mqtt": "^4.3.7",
+    "pi-io": "^1.1.1",
+    "prettier": "^2.7.1",
+    "regenerator-runtime": "^0.13.10",
+    "rpio": "^2.4.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.19.3",
+    "@babel/core": "^7.19.3",
+    "@babel/node": "^7.19.1",
+    "@babel/preset-env": "^7.19.4",
+    "nodemon": "^2.0.20"
+  }
+}
