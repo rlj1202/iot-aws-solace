@@ -4,15 +4,18 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --exec sudo npx babel-node src/main.js"
+    "start": "nodemon --exec sudo npx babel-node src/main.js",
+    "camera": "node src/camera.js"
   },
   "author": "Jisu Sim",
   "license": "ISC",
   "dependencies": {
+    "aws-iot-device-sdk-v2": "^1.8.9",
     "core-js": "^3.25.5",
     "dotenv": "^16.0.3",
     "immer": "^9.0.15",
     "mqtt": "^4.3.7",
+    "pi-camera": "^1.7.0",
     "pi-io": "^1.1.1",
     "prettier": "^2.7.1",
     "regenerator-runtime": "^0.13.10",
