@@ -78,6 +78,14 @@ async function main() {
         process.exit();
     }
 
+    const topic = `${mqttClientConfig.clientId}/ILLUMINANCE`;
+
+    await mqttClientSolace.subscribe(topic);
+
+    mqttClientSolace.onMessage((topic, data) => {
+        console.log(topic, data);
+    });
+
     while (true) {
         let channel = 0;
         let sendBuffer = Buffer.from([0x01, (8 + channel << 4), 0x01]);
@@ -92,7 +100,7 @@ async function main() {
         let dataJson = JSON.stringify(data);
 
         console.log(`Illuminance: ${dataJson}`);
-        mqttClientSolace.send(`${mqttClientConfig.clientId}/ILLUMINANCE`, dataJson);
+        mqttClientSolace.send(topic, dataJson);
         
         await new Promise((res) => setTimeout(res, 1000));
     }

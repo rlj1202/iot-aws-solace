@@ -33,16 +33,44 @@ function MqttClient({ hostUrl, username, password, clientId = username }) {
                 message,
                 { qos },
                 function onPubAck(err) {
-                    if (err) reject(err)
+                    if (err) reject(err);
                     resolve();
                 }
             );
         });
     }
 
+    async function subscribe(topic, qos = 0) {
+        return new Promise((resolve, reject) => {
+            if (!client) {
+                reject("Client has not connected yet");
+            }
+
+            client.subscribe(
+                topic,
+                { qos },
+                function onSubAck(err) {
+                    if (err) reject(err);
+                    resolve();
+                }
+            );
+        });
+    }
+
+    function onMessage(callback) {
+        client.on('message', (topic, payload, packet) => {
+            const dataJson = payload.toString();
+            const data = JSON.parse(dataJson);
+
+            callback(topic, data);
+        });
+    }
+
     return produce({}, draft => {
         draft.connect = connect;
         draft.send = send;
+        draft.subscribe = subscribe;
+        draft.onMessage = onMessage;
     });
 }
 
