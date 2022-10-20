@@ -16,6 +16,10 @@ function MqttClient({ hostUrl, username, password, clientId = username }) {
                 resolve();
             });
 
+            client.on('reconnect', function onReconnAck() {
+                console.log("wtf");
+            });
+
             client.on('error', function onConnError(error) {
                 reject(error);
             });

@@ -16,9 +16,14 @@ if (result.error) {
 
 import MqttClient from './mqtt-client'
 
-import { mqtt, http, iot } from 'aws-iot-device-sdk-v2'
+import { mqtt, iot } from 'aws-iot-device-sdk-v2'
+
+import { TextDecoder } from 'util'
+const decoder = new TextDecoder('utf-8');
 
 const rpio = require('rpio');
+
+var fs = require('fs');
 
 async function main() {
     rpio.spiBegin();
@@ -58,7 +63,7 @@ async function main() {
         );
 
         config_builder.with_clean_session(false);
-        config_builder.with_client_id('IoT_System_Client');
+        config_builder.with_client_id('IoT_System_Client_Jisu');
         config_builder.with_endpoint('a2q6vmsmhirxv-ats.iot.ap-northeast-1.amazonaws.com');
 
         const config = config_builder.build();
@@ -70,21 +75,26 @@ async function main() {
         await mqttClientAWSConnection.connect();
         console.log('Connected');
 
-        await mqttClientAWSConnection.subscribe('pi/photo', mqtt.QoS.AtLeastOnce, () => {
+        console.log('Subscribing...');
+        await mqttClientAWSConnection.subscribe('pi',
+            mqtt.QoS.AtLeastOnce,
+            (topic, payload, dup, qos, retain) => {
+                const jsonStr = decoder.decode(payload);
+                const json = JSON.parse(jsonStr);
+                const imageRaw = json.image;
 
-        });
+                fs.writeFileSync('./test.jpg', imageRaw, 'base64');
+
+                console.log(`from aws, payload: ${imageRaw}`);
+            }
+        );
+        console.log('Subscribed.');
     } catch (err) {
         console.error(err);
         process.exit();
     }
 
-    const topic = `${mqttClientConfig.clientId}/ILLUMINANCE`;
-
-    await mqttClientSolace.subscribe(topic);
-
-    mqttClientSolace.onMessage((topic, data) => {
-        console.log(topic, data);
-    });
+    const topic = 'PHOTO';
 
     while (true) {
         let channel = 0;
@@ -92,15 +102,19 @@ async function main() {
         let receiveBuffer = Buffer.alloc(3);
         rpio.spiTransfer(sendBuffer, receiveBuffer, sendBuffer.length);
 
-        let value = ((receiveBuffer[1] & 0x03) << 8) + receiveBuffer[2];
+        const ILLUMINANCE_THRES = 700;
+        let illuminance = ((receiveBuffer[1] & 0x03) << 8) + receiveBuffer[2];
 
-        let data = {
-            "illuminance": value,
-        };
-        let dataJson = JSON.stringify(data);
+        console.log(`Illuminance: ${illuminance}`);
 
-        console.log(`Illuminance: ${dataJson}`);
-        mqttClientSolace.send(topic, dataJson);
+        if (illuminance > ILLUMINANCE_THRES) {
+            const dataJson = JSON.stringify({
+                "illuminance": illuminance,
+            });
+
+            console.log(`Topic = ${topic}, Data = ${dataJson}`);
+            mqttClientSolace.send(topic, dataJson, 2);
+        }
         
         await new Promise((res) => setTimeout(res, 1000));
     }
